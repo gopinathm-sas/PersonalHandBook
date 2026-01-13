@@ -10,13 +10,6 @@ import {
   Loader2,
   Zap
 } from 'lucide-react';
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  Tooltip 
-} from 'recharts';
 import { analyzeExpenseSMS } from '../services/geminiService';
 
 interface Transaction {
@@ -40,7 +33,6 @@ const BudgetTab: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [detectedSms, setDetectedSms] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [monthlyTarget] = useState(2500);
 
   const [newTitle, setNewTitle] = useState('');
@@ -48,15 +40,12 @@ const BudgetTab: React.FC = () => {
   const [newCategory, setNewCategory] = useState('Food');
 
   useEffect(() => {
-    // Small delay to ensure importmap is resolved
-    const timer = setTimeout(() => setMounted(true), 100);
-    
     const saved = localStorage.getItem('persona_budget');
     if (saved) {
       try {
         setTransactions(JSON.parse(saved));
       } catch (e) {
-        console.error("Parse error", e);
+        setTransactions([]);
       }
     } else {
       setTransactions([
@@ -79,10 +68,7 @@ const BudgetTab: React.FC = () => {
     };
 
     const interval = setInterval(checkClipboard, 5000);
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timer);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -95,16 +81,6 @@ const BudgetTab: React.FC = () => {
     transactions.reduce((sum, t) => sum + (Number(t.amount) || 0), 0), 
   [transactions]);
 
-  const chartData = useMemo(() => {
-    return CATEGORIES.map(cat => ({
-      name: cat.name,
-      value: transactions
-        .filter(t => t.category === cat.name)
-        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
-      color: cat.color
-    })).filter(d => d.value > 0);
-  }, [transactions]);
-
   const categoryTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     transactions.forEach(t => {
@@ -112,6 +88,33 @@ const BudgetTab: React.FC = () => {
     });
     return totals;
   }, [transactions]);
+
+  const chartSegments = useMemo(() => {
+    let cumulativePercent = 0;
+    return CATEGORIES.map(cat => {
+      const value = categoryTotals[cat.name] || 0;
+      const percent = totalSpent > 0 ? value / totalSpent : 0;
+      const start = cumulativePercent;
+      cumulativePercent += percent;
+      return { name: cat.name, color: cat.color, percent, start, end: cumulativePercent };
+    }).filter(s => s.percent > 0);
+  }, [categoryTotals, totalSpent]);
+
+  const handleManualAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle || !newAmount) return;
+    const t: Transaction = {
+      id: Date.now().toString(),
+      title: newTitle,
+      amount: parseFloat(newAmount),
+      category: newCategory,
+      date: new Date().toISOString()
+    };
+    setTransactions(prev => [t, ...prev]);
+    setNewTitle('');
+    setNewAmount('');
+    setShowAddForm(false);
+  };
 
   const processAutoDetected = async () => {
     if (!detectedSms) return;
@@ -131,26 +134,10 @@ const BudgetTab: React.FC = () => {
         setDetectedSms(null);
       }
     } catch (err) {
-      console.error("Auto-process failed", err);
+      console.error(err);
     } finally {
       setIsAiProcessing(false);
     }
-  };
-
-  const handleManualAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle || !newAmount) return;
-    const t: Transaction = {
-      id: Date.now().toString(),
-      title: newTitle,
-      amount: parseFloat(newAmount),
-      category: newCategory,
-      date: new Date().toISOString()
-    };
-    setTransactions(prev => [t, ...prev]);
-    setNewTitle('');
-    setNewAmount('');
-    setShowAddForm(false);
   };
 
   return (
@@ -214,33 +201,31 @@ const BudgetTab: React.FC = () => {
       <section className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100 mb-6 min-h-[300px]">
         <h3 className="text-xl font-extrabold text-gray-900 mb-6">Analysis</h3>
 
-        <div className="h-48 w-full relative mb-6">
-          {mounted ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData.length > 0 ? chartData : [{ name: 'Empty', value: 1, color: '#F3F4F6' }]}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={75}
-                  paddingAngle={6}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                  {chartData.length === 0 && <Cell fill="#F3F4F6" />}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Loader2 className="animate-spin text-gray-200" size={32} />
-            </div>
-          )}
+        <div className="h-48 w-full relative mb-6 flex items-center justify-center">
+          <svg viewBox="0 0 100 100" className="w-40 h-40 transform -rotate-90">
+            {chartSegments.length === 0 ? (
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#F3F4F6" strokeWidth="12" />
+            ) : (
+              chartSegments.map((s, i) => {
+                const radius = 40;
+                const circumference = 2 * Math.PI * radius;
+                const strokeDasharray = `${s.percent * circumference} ${circumference}`;
+                const strokeDashoffset = -s.start * circumference;
+                return (
+                  <circle
+                    key={s.name}
+                    cx="50" cy="50" r={radius}
+                    fill="transparent"
+                    stroke={s.color}
+                    strokeWidth="12"
+                    strokeDasharray={strokeDasharray}
+                    strokeDashoffset={strokeDashoffset}
+                    className="transition-all duration-1000"
+                  />
+                );
+              })
+            )}
+          </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Total</span>
             <span className="text-xl font-black text-gray-900">${totalSpent.toFixed(0)}</span>
