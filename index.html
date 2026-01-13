@@ -7,33 +7,83 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-color: #F8FAFC;
+            --text-color: #1E293B;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --border-color: rgba(241, 245, 249, 1);
+        }
+
+        .dark {
+            --bg-color: #0F172A;
+            --text-color: #F1F5F9;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(51, 65, 85, 0.5);
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            background-color: #F8FAFC; /* Clean grey-white background */
-            color: #1E293B;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 0;
             height: 100vh;
             width: 100vw;
             overflow: hidden;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         #root {
             height: 100%;
             width: 100%;
         }
-        .ios-blur {
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+        
+        /* Liquid Glass Navigation Bar */
+        .liquid-nav {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border: 1.5px solid var(--border-color);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.1);
         }
-        .nav-capsule {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(241, 245, 249, 1);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+
+        .liquid-active {
+            position: relative;
+            background: linear-gradient(135deg, #E2FFB0 0%, #D9F99D 100%);
+            box-shadow: 
+                0 8px 16px -4px rgba(163, 230, 53, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.8);
+            overflow: hidden;
         }
-        .lime-accent {
-            background-color: #D9F99D; /* Lime Green 200 */
+
+        .liquid-active::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 60%);
+            opacity: 0.4;
+            animation: liquid-swirl 6s ease-in-out infinite;
+            pointer-events: none;
         }
+
+        @keyframes liquid-swirl {
+            0%, 100% { transform: translate(-10%, -10%) rotate(0deg); }
+            50% { transform: translate(10%, 10%) rotate(180deg); }
+        }
+
+        .capture-button {
+            background: #1A1A1A;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+        .dark .capture-button {
+            background: #D9F99D;
+            color: #0F172A;
+        }
+
         .heart-pulse {
             stroke-dasharray: 1000;
             stroke-dashoffset: 1000;
@@ -63,5 +113,11 @@
 <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
+    <script>
+      // Apply dark mode early to prevent flash
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
 </body>
 </html>
