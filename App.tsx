@@ -33,7 +33,9 @@ const App: React.FC = () => {
 
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderContent()}
+      <div className="w-full h-full">
+        {renderContent()}
+      </div>
     </Layout>
   );
 };
