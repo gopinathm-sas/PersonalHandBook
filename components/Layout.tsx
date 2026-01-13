@@ -1,12 +1,11 @@
-
 import React from 'react';
 import { TabType } from '../types';
 import { 
   Home, 
-  BarChart2, 
-  Scan, 
-  CheckCircle2, 
-  User 
+  Heart, 
+  Plus, 
+  Library, 
+  Settings 
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -17,52 +16,48 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
   const tabs = [
-    { type: TabType.HEALTH, icon: Home },
-    { type: TabType.BUDGET, icon: BarChart2 },
-    { type: TabType.ASSISTANT, icon: Scan, isCenter: true },
-    { type: TabType.TODO, icon: CheckCircle2 },
-    { type: TabType.SETTINGS, icon: User },
+    { type: TabType.HEALTH, icon: Home, label: 'Home' },
+    { type: TabType.ASSISTANT, icon: Heart, label: 'Health' },
+    { type: TabType.TODO, icon: Plus, label: 'Capture' },
+    { type: TabType.LIBRARY, icon: Library, label: 'Library' },
+    { type: TabType.SETTINGS, icon: Settings, label: 'Settings' },
   ];
 
   return (
-    <div className="flex flex-col h-full w-full max-w-md mx-auto bg-white overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.1)]">
-      <main className="flex-1 overflow-y-auto bg-[#F8FAFC]">
+    <div className="flex flex-col h-full w-full max-w-md mx-auto bg-black overflow-hidden relative shadow-2xl">
+      <main className="flex-1 overflow-y-auto bg-black text-white">
         {children}
-        <div className="h-32" /> {/* Bottom spacer */}
+        <div className="h-32" /> {/* Bottom spacer for navigation */}
       </main>
 
-      <div className="absolute bottom-6 left-6 right-6 z-50">
-        <nav className="bg-white rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100/50 p-2 flex items-center justify-between">
-          {tabs.map((tab, idx) => {
+      {/* Liquid Glass Navigation Bar */}
+      <div className="absolute bottom-8 left-4 right-4 z-50">
+        <nav className="bg-[#1A1A1A]/70 ios-blur rounded-[32px] border border-white/5 p-1.5 flex items-center justify-between shadow-2xl">
+          {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.type;
             
-            if (tab.isCenter) {
-              return (
-                <button
-                  key="center-btn"
-                  onClick={() => setActiveTab(TabType.ASSISTANT)}
-                  className="bg-[#1A1A1A] text-white p-4 rounded-full shadow-lg transform active:scale-90 transition-all"
-                >
-                  <Icon size={24} />
-                </button>
-              );
-            }
-
             return (
               <button
-                key={tab.type || idx}
+                key={tab.label}
                 onClick={() => setActiveTab(tab.type)}
-                className="relative flex items-center justify-center w-12 h-12 transition-all duration-300"
+                className={`relative flex flex-col items-center justify-center flex-1 py-2.5 transition-all duration-300 active:scale-90`}
               >
                 {isActive && (
-                  <div className="absolute inset-0 bg-[#D9F99D] rounded-full animate-in zoom-in duration-300" />
+                  <div className="absolute inset-x-1 inset-y-0.5 bg-white/10 liquid-glass rounded-2xl animate-in fade-in zoom-in duration-300 shimmer" />
                 )}
-                <Icon 
-                  size={20} 
-                  className={`relative z-10 ${isActive ? 'text-[#1A1A1A]' : 'text-gray-400'}`} 
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
+                
+                <div className={`relative z-10 p-1.5 transition-all duration-300 ${isActive ? 'scale-110' : 'scale-100 opacity-60 hover:opacity-100'}`}>
+                  <Icon 
+                    size={22} 
+                    className={`transition-colors duration-300 ${isActive ? 'text-[#38BDF8]' : 'text-white'}`}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                </div>
+                
+                <span className={`relative z-10 text-[9px] font-bold mt-0.5 transition-all duration-300 tracking-tight ${isActive ? 'text-white' : 'text-white/40'}`}>
+                  {tab.label}
+                </span>
               </button>
             );
           })}
