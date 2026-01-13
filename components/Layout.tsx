@@ -25,7 +25,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
   ];
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-white overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.1)]">
+    <div className="flex flex-col h-full w-full max-w-md mx-auto bg-white overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.1)]">
       <main className="flex-1 overflow-y-auto bg-[#F8FAFC]">
         {children}
         <div className="h-32" /> {/* Bottom spacer */}
@@ -33,7 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
 
       <div className="absolute bottom-6 left-6 right-6 z-50">
         <nav className="bg-white rounded-[40px] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100/50 p-2 flex items-center justify-between">
-          {tabs.map((tab) => {
+          {tabs.map((tab, idx) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.type;
             
@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
 
             return (
               <button
-                key={tab.type}
+                key={tab.type || idx}
                 onClick={() => setActiveTab(tab.type)}
                 className="relative flex items-center justify-center w-12 h-12 transition-all duration-300"
               >
