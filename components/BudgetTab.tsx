@@ -48,7 +48,9 @@ const BudgetTab: React.FC = () => {
   const [newCategory, setNewCategory] = useState('Food');
 
   useEffect(() => {
-    setMounted(true);
+    // Small delay to ensure importmap is resolved
+    const timer = setTimeout(() => setMounted(true), 100);
+    
     const saved = localStorage.getItem('persona_budget');
     if (saved) {
       try {
@@ -77,7 +79,10 @@ const BudgetTab: React.FC = () => {
     };
 
     const interval = setInterval(checkClipboard, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -210,7 +215,7 @@ const BudgetTab: React.FC = () => {
         <h3 className="text-xl font-extrabold text-gray-900 mb-6">Analysis</h3>
 
         <div className="h-48 w-full relative mb-6">
-          {mounted && (
+          {mounted ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -231,6 +236,10 @@ const BudgetTab: React.FC = () => {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Loader2 className="animate-spin text-gray-200" size={32} />
+            </div>
           )}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Total</span>
