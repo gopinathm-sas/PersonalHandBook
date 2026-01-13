@@ -20,10 +20,9 @@ const startApp = () => {
   } catch (error) {
     console.error("Failed to render app:", error);
     rootElement.innerHTML = `
-      <div style="padding: 20px; color: red; font-family: sans-serif;">
-        <h1>App failed to start</h1>
-        <pre>${error instanceof Error ? error.message : String(error)}</pre>
-        <p>This usually happens due to a module resolution error in the browser. Check the console for details.</p>
+      <div style="padding: 20px; color: #ef4444; font-family: 'Plus Jakarta Sans', sans-serif; text-align: center;">
+        <h1 style="font-weight: 800;">Initialization Error</h1>
+        <p style="font-size: 14px; color: #6b7280;">${error instanceof Error ? error.message : String(error)}</p>
       </div>
     `;
   }
