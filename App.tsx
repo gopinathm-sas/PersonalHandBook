@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from './components/Layout';
 import HealthTab from './components/HealthTab';
@@ -6,6 +5,7 @@ import AssistantTab from './components/AssistantTab';
 import BudgetTab from './components/BudgetTab';
 import TodoTab from './components/TodoTab';
 import PlaceholderTab from './components/PlaceholderTab';
+import SettingsTab from './components/SettingsTab';
 import { TabType } from './types';
 import { Wallet, CheckSquare, BookOpen, Settings } from 'lucide-react';
 
@@ -25,7 +25,7 @@ const App: React.FC = () => {
       case TabType.LIBRARY:
         return <PlaceholderTab title="Personal Library" icon={BookOpen} />;
       case TabType.SETTINGS:
-        return <PlaceholderTab title="Settings" icon={Settings} />;
+        return <SettingsTab />;
       default:
         return <HealthTab />;
     }
