@@ -1,0 +1,8 @@
+{
+  "name": "Persona Handbook",
+  "description": "A comprehensive personal assistant and health tracker with intelligent vision-based reminder automation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
