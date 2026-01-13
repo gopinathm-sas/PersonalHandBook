@@ -6,6 +6,7 @@ import { HealthData } from '../types';
 const HealthTab: React.FC = () => {
   const [insight, setInsight] = useState<{ summary: string; trends: string[]; recommendations: string[] } | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
+  const [displayName, setDisplayName] = useState('Administrator');
 
   const currentMetrics: HealthData = {
     steps: 5234,
@@ -16,6 +17,10 @@ const HealthTab: React.FC = () => {
   };
 
   useEffect(() => {
+    // Load local profile name
+    const savedName = localStorage.getItem('user_name');
+    if (savedName) setDisplayName(savedName);
+
     const fetchAIInsights = async () => {
       setLoadingInsight(true);
       const data = await analyzeHealthData(currentMetrics);
@@ -40,10 +45,10 @@ const HealthTab: React.FC = () => {
       {/* Header */}
       <header className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-slate-400 dark:text-slate-500 text-sm font-medium">Good morning 👋</h2>
+          <h2 className="text-slate-400 dark:text-slate-500 text-sm font-medium italic">Namaste,</h2>
           <div className="flex items-center gap-2 mt-1">
-             <div className="w-16 h-4 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-             <span className="text-[10px] font-black text-lime-600 dark:text-lime-400 bg-lime-50 dark:bg-lime-900/20 px-2 py-0.5 rounded-md uppercase tracking-widest">Active Status</span>
+             <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{displayName}</h1>
+             <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-0.5 rounded-md uppercase tracking-widest">Active</span>
           </div>
         </div>
         <button className="w-12 h-12 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-sm relative">
@@ -144,8 +149,8 @@ const HealthTab: React.FC = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         {[
-          { label: 'STEP TO WALK', val: '5,234', unit: 'STEP', Icon: Footprints },
-          { label: 'DRINK WATER', val: '12', unit: 'GLASS', Icon: Droplets }
+          { label: 'STEPS TAKEN', val: '5,234', unit: 'STEPS', Icon: Footprints },
+          { label: 'WATER INTAKE', val: '12', unit: 'GLASSES', Icon: Droplets }
         ].map((stat, i) => (
           <div key={i} className="bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-sm border border-slate-50 dark:border-slate-800">
             <div className="flex justify-between items-start">
@@ -166,7 +171,7 @@ const HealthTab: React.FC = () => {
         <div className="flex justify-between items-start mb-2">
             <div>
                 <h3 className="font-bold text-slate-900 dark:text-white">Heart Rate</h3>
-                <p className="text-[10px] text-slate-400 dark:text-slate-600">Higher than usual</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-600">Resting average</p>
             </div>
             <ArrowUpRight size={18} className="text-slate-300 dark:text-slate-600" />
         </div>
