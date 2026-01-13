@@ -10,8 +10,8 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            background-color: #F0F7F4; /* Soft Green Pastel Background */
-            color: #1A1A1A;
+            background-color: #F8FAFC; /* Clean grey-white background */
+            color: #1E293B;
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -23,45 +23,24 @@
             width: 100%;
         }
         .ios-blur {
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
         }
-        /* Liquid Glass Icon Effect */
-        .liquid-icon {
-            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .nav-capsule {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(241, 245, 249, 1);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
         }
-        .active-liquid {
-            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));
-            position: relative;
+        .lime-accent {
+            background-color: #D9F99D; /* Lime Green 200 */
         }
-        .shimmer-icon::after {
-            content: '';
-            position: absolute;
-            top: -20%;
-            left: -20%;
-            width: 140%;
-            height: 140%;
-            background: linear-gradient(
-                135deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0) 40%,
-                rgba(255, 255, 255, 0.8) 50%,
-                rgba(255, 255, 255, 0) 60%,
-                transparent 100%
-            );
-            mask-image: inherit;
-            animation: icon-shimmer 3s infinite linear;
-            pointer-events: none;
+        .heart-pulse {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: pulse-draw 3s linear infinite;
         }
-        @keyframes icon-shimmer {
-            0% { transform: translateX(-100%) translateY(-100%); }
-            100% { transform: translateX(100%) translateY(100%); }
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+        @keyframes pulse-draw {
+            to { stroke-dashoffset: 0; }
         }
         ::-webkit-scrollbar {
             display: none;
