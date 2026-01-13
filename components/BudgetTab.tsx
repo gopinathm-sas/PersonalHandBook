@@ -73,9 +73,7 @@ const BudgetTab: React.FC = () => {
         if (isTransaction && text.length > 10 && text.length < 300) {
           setDetectedSms(text);
         }
-      } catch (err) {
-        // Permission denied or clipboard empty
-      }
+      } catch (err) {}
     };
 
     const interval = setInterval(checkClipboard, 5000);
