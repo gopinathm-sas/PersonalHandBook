@@ -1,10 +1,6 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Wallet, 
   Plus, 
-  MoreHorizontal, 
-  ArrowUpRight, 
   ShoppingBag, 
   Coffee, 
   Car, 
@@ -44,6 +40,7 @@ const BudgetTab: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [detectedSms, setDetectedSms] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [monthlyTarget] = useState(2500);
 
   const [newTitle, setNewTitle] = useState('');
@@ -51,9 +48,14 @@ const BudgetTab: React.FC = () => {
   const [newCategory, setNewCategory] = useState('Food');
 
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem('persona_budget');
     if (saved) {
-      setTransactions(JSON.parse(saved));
+      try {
+        setTransactions(JSON.parse(saved));
+      } catch (e) {
+        console.error("Parse error", e);
+      }
     } else {
       setTransactions([
         { id: '1', title: 'Starbucks Coffee', amount: 5.50, category: 'Food', date: new Date().toISOString() },
@@ -66,31 +68,28 @@ const BudgetTab: React.FC = () => {
     const checkClipboard = async () => {
       try {
         const text = await navigator.clipboard.readText();
+        if (!text) return;
         const isTransaction = /[\$£€]|paid|spent|transaction|debited|amount/i.test(text);
-        const isAlreadyProcessed = transactions.some(t => text.includes(t.title) && text.includes(t.amount.toString()));
-        
-        if (isTransaction && !isAlreadyProcessed && text.length > 10 && text.length < 300) {
+        if (isTransaction && text.length > 10 && text.length < 300) {
           setDetectedSms(text);
         }
       } catch (err) {
-        console.debug("Clipboard access not available");
+        // Permission denied or clipboard empty
       }
     };
 
-    const interval = setInterval(checkClipboard, 3000);
-    window.addEventListener('focus', checkClipboard);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', checkClipboard);
-    };
-  }, [transactions]);
+    const interval = setInterval(checkClipboard, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('persona_budget', JSON.stringify(transactions));
+    if (transactions.length > 0) {
+      localStorage.setItem('persona_budget', JSON.stringify(transactions));
+    }
   }, [transactions]);
 
   const totalSpent = useMemo(() => 
-    transactions.reduce((sum, t) => sum + t.amount, 0), 
+    transactions.reduce((sum, t) => sum + (Number(t.amount) || 0), 0), 
   [transactions]);
 
   const chartData = useMemo(() => {
@@ -98,7 +97,7 @@ const BudgetTab: React.FC = () => {
       name: cat.name,
       value: transactions
         .filter(t => t.category === cat.name)
-        .reduce((sum, t) => sum + t.amount, 0),
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
       color: cat.color
     })).filter(d => d.value > 0);
   }, [transactions]);
@@ -106,7 +105,7 @@ const BudgetTab: React.FC = () => {
   const categoryTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     transactions.forEach(t => {
-      totals[t.category] = (totals[t.category] || 0) + t.amount;
+      totals[t.category] = (totals[t.category] || 0) + (Number(t.amount) || 0);
     });
     return totals;
   }, [transactions]);
@@ -170,16 +169,16 @@ const BudgetTab: React.FC = () => {
       </header>
 
       {detectedSms && !isAiProcessing && (
-        <div className="mb-6 bg-[#1A1A1A] text-white p-5 rounded-[32px] shadow-2xl animate-in slide-in-from-top-4 duration-500 border border-white/10">
+        <div className="mb-6 bg-[#1A1A1A] text-white p-5 rounded-[32px] shadow-2xl border border-white/10">
           <div className="flex items-start gap-4">
             <div className="bg-[#D9F99D] p-3 rounded-2xl shrink-0">
               <Zap size={20} className="text-black" />
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-[10px] font-black uppercase text-[#D9F99D] tracking-widest mb-1">SMS Detected</p>
+              <p className="text-[10px] font-black uppercase text-[#D9F99D] tracking-widest mb-1">Clipboard Data</p>
               <p className="text-xs text-gray-300 font-medium truncate italic mb-3">"{detectedSms}"</p>
               <div className="flex gap-2">
-                <button onClick={processAutoDetected} className="flex-1 bg-[#D9F99D] text-black text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider">Confirm & Add</button>
+                <button onClick={processAutoDetected} className="flex-1 bg-[#D9F99D] text-black text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider">Analyze & Add</button>
                 <button onClick={() => setDetectedSms(null)} className="px-4 bg-white/10 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider">Dismiss</button>
               </div>
             </div>
@@ -195,7 +194,7 @@ const BudgetTab: React.FC = () => {
       )}
 
       {showAddForm && (
-        <form onSubmit={handleManualAdd} className="mb-8 bg-white p-6 rounded-[32px] border border-gray-100 shadow-xl animate-in zoom-in-95 duration-300">
+        <form onSubmit={handleManualAdd} className="mb-8 bg-white p-6 rounded-[32px] border border-gray-100 shadow-xl">
           <div className="space-y-4">
             <input type="text" placeholder="Merchant" className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-bold outline-none" value={newTitle} onChange={e => setNewTitle(e.target.value)} required />
             <div className="flex gap-3">
@@ -209,44 +208,32 @@ const BudgetTab: React.FC = () => {
         </form>
       )}
 
-      <section className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100 mb-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-extrabold text-gray-900">Analysis</h3>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Monthly</span>
-          </div>
-        </div>
+      <section className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100 mb-6 min-h-[300px]">
+        <h3 className="text-xl font-extrabold text-gray-900 mb-6">Analysis</h3>
 
-        {/* Breakdown Chart */}
         <div className="h-48 w-full relative mb-6">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={55}
-                outerRadius={75}
-                paddingAngle={6}
-                dataKey="value"
-                stroke="none"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  borderRadius: '20px', 
-                  border: 'none', 
-                  boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                  fontSize: '10px',
-                  fontWeight: '800',
-                  textTransform: 'uppercase'
-                }} 
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {mounted && (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData.length > 0 ? chartData : [{ name: 'Empty', value: 1, color: '#F3F4F6' }]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={75}
+                  paddingAngle={6}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                  {chartData.length === 0 && <Cell fill="#F3F4F6" />}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Total</span>
             <span className="text-xl font-black text-gray-900">${totalSpent.toFixed(0)}</span>
@@ -278,19 +265,8 @@ const BudgetTab: React.FC = () => {
         </div>
       </section>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-white rounded-[32px] p-5 shadow-sm border border-gray-100">
-           <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Disposable</p>
-           <h4 className="text-xl font-black text-gray-900">${Math.max(monthlyTarget - totalSpent, 0).toFixed(0)}</h4>
-        </div>
-        <div className="bg-white rounded-[32px] p-5 shadow-sm border border-gray-100">
-           <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Avg Daily</p>
-           <h4 className="text-xl font-black text-gray-900">${(totalSpent / 30).toFixed(2)}</h4>
-        </div>
-      </div>
-
       <div className="space-y-4">
-        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Transactions</h3>
+        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Recent Transactions</h3>
         {transactions.length === 0 ? (
           <div className="text-center py-12 text-gray-400 text-xs font-bold uppercase tracking-widest">No entries</div>
         ) : (
@@ -298,7 +274,7 @@ const BudgetTab: React.FC = () => {
             const cat = CATEGORIES.find(c => c.name === t.category) || CATEGORIES[0];
             const Icon = cat.icon;
             return (
-              <div key={t.id} className="bg-white p-5 rounded-[32px] shadow-sm border border-gray-100 flex items-center gap-4 group hover:border-[#D9F99D] transition-colors">
+              <div key={t.id} className="bg-white p-5 rounded-[32px] shadow-sm border border-gray-100 flex items-center gap-4 group">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${cat.color}20` }}>
                   <Icon size={20} style={{ color: cat.color }} />
                 </div>
@@ -310,8 +286,8 @@ const BudgetTab: React.FC = () => {
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">{cat.name}</p>
                 </div>
                 <div className="text-right flex items-center gap-3">
-                  <span className="font-black text-gray-900 text-sm">-${t.amount.toFixed(2)}</span>
-                  <button onClick={() => setTransactions(prev => prev.filter(x => x.id !== t.id))} className="p-2 text-gray-200 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
+                  <span className="font-black text-gray-900 text-sm">-${Number(t.amount).toFixed(2)}</span>
+                  <button onClick={() => setTransactions(prev => prev.filter(x => x.id !== t.id))} className="p-2 text-gray-200 hover:text-red-400 opacity-0 group-hover:opacity-100"><Trash2 size={16} /></button>
                 </div>
               </div>
             );
