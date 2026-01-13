@@ -124,7 +124,6 @@ const TodoTab: React.FC = () => {
         </button>
       </header>
 
-      {/* Routine Prompt */}
       {showRoutinePrompt && regularTasks.length < 5 && (
         <div className="mb-6 bg-[#1A1A1A] text-white p-5 rounded-[32px] shadow-2xl animate-in zoom-in duration-500 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4">
@@ -154,7 +153,6 @@ const TodoTab: React.FC = () => {
         </div>
       )}
 
-      {/* Regular Tasks Section */}
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4 px-2">
           <Repeat size={14} className="text-gray-400" />
@@ -196,7 +194,6 @@ const TodoTab: React.FC = () => {
         </div>
       </section>
 
-      {/* Progress Card */}
       <section className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100 mb-8">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
